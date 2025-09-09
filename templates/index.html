@@ -323,6 +323,9 @@
                 <input type="date" id="date" required>
                 <input type="text" id="batch" placeholder="Batch Name (e.g., Batch A)" required>
             </div>
+            <div class="form-group">
+                <input type="file" id="excelInput" accept=".xlsx,.xls">
+            </div>
 
             <div class="drop-zone" id="dropZone">
                 <i class="fas fa-cloud-upload-alt"></i>
@@ -358,6 +361,15 @@
 
     <script>
         let selectedFile = null;
+        let selectedExcel = null;
+
+        const excelInput = document.getElementById('excelInput');
+
+        excelInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                selectedExcel = e.target.files[0];
+            }
+        });
 
         // Theme toggle
         function toggleTheme() {
@@ -432,6 +444,10 @@
             formData.append('image', selectedFile);
             formData.append('date', date);
             formData.append('batch', batch);
+
+            if (selectedExcel) {
+                formData.append('excel', selectedExcel);
+            }
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
