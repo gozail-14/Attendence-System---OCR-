@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #475569;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group input {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .drop-zone {
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone i {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .drop-zone p {
+            color: var(--text-secondary);
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .process-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid var(--border);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .students-table {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .table-header {
+            background: var(--accent);
+            color: white;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 100px;
+            font-weight: 600;
+        }
+
+        .student-row {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 100px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .student-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-header, .student-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-check"></i> Smart Attendance</h1>
+            <p>Upload attendance sheets and automatically mark student presence</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="form-group">
+                <input type="date" id="date" required>
+                <input type="text" id="batch" placeholder="Batch Name (e.g., Batch A)" required>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Drop your attendance image here</h3>
+                <p>or click to browse files</p>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <button class="process-btn" id="processBtn" disabled>
+                <i class="fas fa-magic"></i> Process Attendance
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing image and marking attendance...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="stats" id="stats"></div>
+            <div class="students-table">
+                <div class="table-header">
+                    <div>Student Name</div>
+                    <div>Student ID</div>
+                    <div>Status</div>
+                </div>
+                <div id="studentsList"></div>
+            </div>
+        </div>
+
+        <div id="alerts"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-moon';
+            }
+        }
+
+        // Set today's date
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+        // File handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                selectedFile = file;
+                dropZone.innerHTML = `
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                    <h3>${file.name}</h3>
+                    <p>Ready to process</p>
+                `;
+                processBtn.disabled = false;
+            } else {
+                showAlert('Please select a valid image file.', 'error');
+            }
+        }
+
+        // Process attendance
+        processBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const date = document.getElementById('date').value;
+            const batch = document.getElementById('batch').value;
+
+            if (!date || !batch) {
+                showAlert('Please fill in date and batch name.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            formData.append('date', date);
+            formData.append('batch', batch);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            processBtn.disabled = true;
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showAlert(data.error || 'Processing failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                processBtn.disabled = false;
+            }
+        });
+
+        function displayResults(data) {
+            const stats = document.getElementById('stats');
+            const studentsList = document.getElementById('studentsList');
+            
+            stats.innerHTML = `
+                <div class="stat-card">
+                    <h3>${data.present_count}</h3>
+                    <p>Students Present</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${data.total_students}</h3>
+                    <p>Total Students</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${Math.round((data.present_count / data.total_students) * 100)}%</h3>
+                    <p>Attendance Rate</p>
+                </div>
+            `;
+
+            studentsList.innerHTML = data.present_students
+                .map(student => `
+                    <div class="student-row">
+                        <div>${student.name}</div>
+                        <div>${student.id}</div>
+                        <div><span class="status-badge">Present</span></div>
+                    </div>
+                `).join('');
+
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showAlert(message, type = 'error') {
+            const alerts = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            alerts.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

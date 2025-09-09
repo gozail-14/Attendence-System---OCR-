@@ -1,0 +1,6 @@
+Flask
+openpyxl
+opencv-python
+pillow
+pytesseract
+requests
