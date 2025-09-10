@@ -324,6 +324,9 @@
                 <input type="text" id="batch" placeholder="Batch Name (e.g., Batch A)" required>
             </div>
             <div class="form-group">
+                <label for="excelInput" style="grid-column: 1 / -1; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    Select Excel file to mark attendance (optional):
+                </label>
                 <input type="file" id="excelInput" accept=".xlsx,.xls">
             </div>
 
@@ -368,6 +371,7 @@
         excelInput.addEventListener('change', (e) => {
             if (e.target.files[0]) {
                 selectedExcel = e.target.files[0];
+                document.getElementById('excelFileName').textContent = selectedExcel.name;
             }
         });
 
