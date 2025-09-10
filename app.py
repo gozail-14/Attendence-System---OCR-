@@ -25,7 +25,6 @@ def preprocess_image(image_path, output_folder="uploads"):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3,3), 0)
     _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # Save processed image with unique name
     processed_path = os.path.join(output_folder, "bw_" + os.path.basename(image_path))
     cv2.imwrite(processed_path, thresh)
     return processed_path
@@ -152,7 +151,7 @@ def upload_file():
         else:
             excel_path = EXCEL_FILE
 
-        present_ids = extract_numbers_from_image(filepath)
+        present_ids = extract_numbers_from_image(preprocess_image(filepath, output_folder=app.config["UPLOAD_FOLDER"]))
 
         # Pass excel_path to attendance functions
         wb = openpyxl.load_workbook(excel_path)
